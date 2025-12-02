@@ -80,9 +80,9 @@ WSGI_APPLICATION = "traffic_backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME", "traffic"),
-        "USER": os.getenv("DB_USER", "traffic"),
-        "PASSWORD": os.getenv("DB_PASSWORD", "traffic"),
+        "NAME": os.getenv("DB_NAME", "postgres"),
+        "USER": os.getenv("DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DB_PASSWORD", "13Mart2012."),
         "HOST": f"/cloudsql/{os.getenv('CLOUD_SQL_CONNECTION_NAME')}",
         "PORT": "5432",
     }
