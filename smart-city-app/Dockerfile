@@ -10,8 +10,6 @@ RUN npm install
 
 # Build (BACKEND_URL is used by server code)
 COPY . .
-ARG BACKEND_URL
-ENV BACKEND_URL=$BACKEND_URL
 RUN npm run build
 
 # --- Runtime image ---
