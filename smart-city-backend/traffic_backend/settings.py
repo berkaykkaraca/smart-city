@@ -83,11 +83,15 @@ DATABASES = {
         "NAME": os.getenv("DB_NAME", "postgres"),
         "USER": os.getenv("DB_USER", "postgres"),
         "PASSWORD": os.getenv("DB_PASSWORD", "13Mart2012."),
-        "HOST": f"/cloudsql/{os.getenv('CLOUD_SQL_CONNECTION_NAME')}",
+        # "HOST": f"/cloudsql/{os.getenv('CLOUD_SQL_CONNECTION_NAME')}",
         "PORT": "5432",
     }
 }
-
+if os.getenv("CLOUD_SQL_CONNECTION_NAME"):
+    DATABASES["default"]["HOST"] = f"/cloudsql/{os.getenv('CLOUD_SQL_CONNECTION_NAME')}"
+else:
+    # Tanımlı değilse (Lokal ortam)
+    DATABASES["default"]["HOST"] = "127.0.0.1"
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators

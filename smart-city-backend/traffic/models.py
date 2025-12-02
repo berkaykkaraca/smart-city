@@ -1,25 +1,70 @@
 from django.db import models
 
 
+class District(models.Model):
+    """
+    Şehir ve İlçe bilgisini tutar.
+    Örn: Istanbul / Kadikoy
+    """
+
+    city_name = models.CharField(max_length=50)
+    district_name = models.CharField(max_length=50)
+
+    class Meta:
+        unique_together = ("city_name", "district_name")
+
+    def __str__(self):
+        return f"{self.city_name}/{self.district_name}"
+
+
+class Signaller(models.Model):
+    """
+    Trafik verisini toplayan sinyal vericiler (Sensörler).
+    Bir ilçede birden fazla olabilir.
+    """
+
+    district = models.ForeignKey(
+        District, on_delete=models.CASCADE, related_name="signallers"
+    )
+    road_name = models.CharField(max_length=60)
+    active = models.BooleanField(
+        default=True
+    )  # Parantez eklendi ve varsayılan değer atandı
+
+    def __str__(self):
+        return f"{self.district} - {self.road_name}"
+
+
 class TrafficEvent(models.Model):
     """
-    Simple traffic data point coming from a sensor in the smart city.
-
-    In a real system you might normalize location into a GeoDjango field or a
-    separate table, but for this prototype we keep it simple.
+    Sinyal vericiden gelen anlık trafik olayı.
     """
 
-    sensor_id = models.CharField(max_length=100)
-    location = models.CharField(
-        max_length=255,
-        help_text="Logical location of the sensor (e.g. 'Main St & 3rd Ave')",
+    signaller = models.ForeignKey(
+        Signaller, on_delete=models.CASCADE, related_name="events"
     )
-    vehicle_count = models.PositiveIntegerField(help_text="Number of vehicles detected")
-    average_speed_kmh = models.FloatField(help_text="Average speed in km/h")
-    created_at = models.DateTimeField(auto_now_add=True)
+    average_kmh = models.IntegerField()
+    # Reason: High vehicle population, traffic accidents, etc.
+    known_reason = models.CharField(max_length=100, null=True, blank=True, default=None)
+    expected_resolution_time = models.DateTimeField(null=True, blank=True, default=None)
+    created_at = models.DateTimeField(auto_now_add=True)  # Sıralama yapmak için ekledim
 
     class Meta:
         ordering = ["-created_at"]
 
-    def __str__(self) -> str:
-        return f"{self.sensor_id} @ {self.location} ({self.created_at})"
+    def __str__(self):
+        return f"Event at {self.signaller.road_name}: {self.average_kmh} km/h"
+
+
+class Notification(models.Model):
+    """
+    Trafik olayı oluştuğunda yayınlanan bildirim.
+    """
+
+    event = models.ForeignKey(
+        TrafficEvent, on_delete=models.CASCADE, related_name="notifications"
+    )
+    publish_time = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.event}"
