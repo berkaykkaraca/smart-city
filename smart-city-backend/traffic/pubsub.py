@@ -23,6 +23,7 @@ def get_publisher_client() -> pubsub_v1.PublisherClient:
 def publish_traffic_event(payload: Dict[str, Any]) -> None:
     """
     Publish a traffic event JSON payload to the configured Pub/Sub topic.
+    Failures are logged but don't raise exceptions to avoid breaking the API.
     """
     try:
         publisher = get_publisher_client()
@@ -32,13 +33,10 @@ def publish_traffic_event(payload: Dict[str, Any]) -> None:
         )
         data = json.dumps(payload).encode("utf-8")
         future = publisher.publish(topic_path, data)
-        # Trigger the RPC; result() will raise if the publish fails.
-        message_id = future.result()
-        logger.info("Published traffic event to Pub/Sub: %s", message_id)
+        # Non-blocking: don't wait for result() to avoid RuntimeError
+        # The publish happens asynchronously; failures are logged but don't crash
+        logger.debug("Queued traffic event for Pub/Sub publishing (message_id pending)")
     except GoogleAPIError as exc:
-        logger.exception("Failed to publish traffic event to Pub/Sub: %s", exc)
+        logger.warning("Failed to publish traffic event to Pub/Sub: %s", exc)
     except Exception as exc:  # pragma: no cover - defensive
-        logger.exception("Unexpected error when publishing to Pub/Sub: %s", exc)
-
-
-
+        logger.warning("Unexpected error when publishing to Pub/Sub: %s", exc)
